@@ -13,15 +13,20 @@ const PORT = process.env.PORT || 5000;
 
 // ─── Security & Parsing ────────────────────────────────────────────────────
 app.use(helmet());
+
+// ✅ UPDATED CORS CONFIG
 app.use(
     cors({
-        origin: process.env.NODE_ENV === 'production'
-            ? 'https://bhargav-portfolio.com'
-            : ['http://localhost:5173', 'http://localhost:3000'],
+        origin: [
+            'http://localhost:5173',
+            'http://localhost:3000',
+            'https://bhargav-portfolio.vercel.app' // 👈 YOUR VERCEL URL
+        ],
         methods: ['GET', 'POST', 'PATCH'],
         credentials: true,
     })
 );
+
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -32,7 +37,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 // ─── Rate Limiting ─────────────────────────────────────────────────────────
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
+    windowMs: 15 * 60 * 1000,
     max: 50,
     standardHeaders: true,
     legacyHeaders: false,
@@ -67,13 +72,11 @@ app.use((err, _req, res, _next) => {
 // ─── Database & Server ─────────────────────────────────────────────────────
 const startServer = async () => {
     try {
-        await mongoose.connect(process.env.MONGO_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
+        await mongoose.connect(process.env.MONGO_URI);
         console.log('✅ MongoDB connected successfully');
+
         app.listen(PORT, () => {
-            console.log(`🚀 Server running on http://localhost:${PORT}`);
+            console.log(`🚀 Server running on port ${PORT}`);
         });
     } catch (err) {
         console.error('❌ MongoDB connection failed:', err.message);
